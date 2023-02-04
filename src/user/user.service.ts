@@ -9,8 +9,13 @@ export class UserService {
 
     private readonly logger = new Logger('user.service');
 
+    async hasUser(userId: string): Promise<boolean> {
+        const user = await this.users.findOne({ userId });
+        return user != null && user != undefined;
+    }
+
     async getUser(userId: object) {
-        return this.users.findOne(userId);
+        return this.users.findOne(userId).select('+password');
     }
 
     async createUser(user: object) {

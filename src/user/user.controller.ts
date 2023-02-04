@@ -1,11 +1,16 @@
-import { Body, Controller, Head, Header, HttpCode, HttpException, HttpStatus, Logger, Post, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Header, HttpCode, HttpException, HttpStatus, Logger, Post, UsePipes, ValidationPipe } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import * as bcrypt from 'bcrypt';
+import { LoginDto } from "./dto/login.dto";
 import { RegisterUserDto } from "./dto/register.dto";
 import { UserService } from "./user.service";
-import * as bcrypt from 'bcrypt';
 
 @Controller()
 export class UserController {
-    constructor(private readonly userService: UserService) { }
+    constructor(
+        private readonly userService: UserService,
+        private readonly jwtService: JwtService
+    ) { }
 
     private readonly logger = new Logger('user.controller');
 
@@ -15,7 +20,7 @@ export class UserController {
     @HttpCode(201)
     async register(@Body() user: RegisterUserDto) {
         const { username } = user;
-        const existingUser = await this.userService.getUser({ username });
+        const existingUser = await this.userService.hasUser(username);
 
         if (existingUser) {
             this.logger.warn(`user already exists`);
@@ -33,5 +38,32 @@ export class UserController {
         }
 
         throw new HttpException("Failed to create user", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @UsePipes(new ValidationPipe())
+    @Post('login')
+    @Header('content-type', 'application/json')
+    @HttpCode(200)
+    async login(@Body() credentials: LoginDto) {
+        const { username, password } = credentials;
+
+        const user = await this.userService.getUser({ username });
+        if (!user) {
+            return new HttpException("User not found", HttpStatus.NOT_FOUND);
+        }
+
+        const passwordValid = await bcrypt.compare(user.password, password);
+        if (!password) {
+            return new HttpException("Invalid Credentials", HttpStatus.UNAUTHORIZED);
+        }
+
+        //  login successful
+        const payload = { username: user.username, sub: user._id };
+
+        return {
+            code: HttpStatus.OK,
+            access_token: this.jwtService.sign(payload),
+            message: "Authentication Successful",
+        };;
     }
 }
