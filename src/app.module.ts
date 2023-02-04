@@ -4,8 +4,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
-import { config } from './config';
+import { UserModule } from './user/user.module';
+import { config } from './utils/config';
 
 @Module({
   imports: [
@@ -20,7 +20,7 @@ import { config } from './config';
         uri: configService.get('mongoUri'),
       }),
     }),
-    AuthModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
