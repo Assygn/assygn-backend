@@ -52,17 +52,27 @@ export class UserController {
             return new HttpException("User not found", HttpStatus.NOT_FOUND);
         }
 
-        const passwordValid = await bcrypt.compare(user.password, password);
+        const passwordValid = await bcrypt.compare(user.password!, password);
         if (!password) {
             return new HttpException("Invalid Credentials", HttpStatus.UNAUTHORIZED);
         }
 
         //  login successful
-        const payload = { username: user.username, sub: user._id };
+        const payload = {
+            username: user.username,
+            sub: user._id
+        };
+
+        //  remove password before sending in response
+        var profileJson = user.toJSON();
+        delete profileJson.password;
 
         return {
             code: HttpStatus.OK,
-            access_token: this.jwtService.sign(payload),
+            data: {
+                access_token: this.jwtService.sign(payload),
+                profile: profileJson,
+            },
             message: "Authentication Successful",
         };;
     }
