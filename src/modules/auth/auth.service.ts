@@ -1,13 +1,13 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
-import { User, UserDocument } from "./user.schema";
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { UserDocument } from 'src/schemas/user.schema';
 
 @Injectable()
-export class UserService {
+export class AuthService {
     constructor(@InjectModel('users') private readonly users: Model<UserDocument>) { }
 
-    private readonly logger = new Logger('user.service');
+    private readonly logger = new Logger('auth.service');
 
     async hasUser(userId: string): Promise<boolean> {
         const user = await this.users.find({username: userId});

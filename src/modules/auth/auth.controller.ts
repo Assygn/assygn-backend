@@ -3,12 +3,12 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterUserDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { UserService } from 'src/schemas/user/user.service';
+import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
     constructor(
-        private readonly userService: UserService,
+        private readonly authService: AuthService,
         private readonly jwtService: JwtService,
     ) { }
 
@@ -20,7 +20,7 @@ export class AuthController {
     @HttpCode(201)
     async register(@Body() user: RegisterUserDto) {
         const { username } = user;
-        const existingUser = await this.userService.hasUser(username);
+        const existingUser = await this.authService.hasUser(username);
 
         if (existingUser) {
             this.logger.warn(`user already exists`);
@@ -28,7 +28,7 @@ export class AuthController {
         }
 
         user.password = await bcrypt.hash(user.password, 8);
-        const createduser = await this.userService.createUser(user);
+        const createduser = await this.authService.createUser(user);
         if (createduser) {
             return {
                 "code": HttpStatus.CREATED,
@@ -49,7 +49,7 @@ export class AuthController {
     async login(@Body() credentials: LoginDto) {
         const { username, password } = credentials;
 
-        const user = await this.userService.getUser({ username }, true);
+        const user = await this.authService.getUser({ username }, true);
         if (!user) {
             return new HttpException("User not found", HttpStatus.NOT_FOUND);
         }
