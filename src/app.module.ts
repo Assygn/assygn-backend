@@ -7,10 +7,12 @@ import { AppService } from './app.service';
 import { config } from './utils/config';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { TasksModule } from './modules/tasks/tasks.module';
 
 const API_MODULES = [
   AuthModule,
-  UsersModule
+  UsersModule,
+  TasksModule,
 ];
 
 @Module({
