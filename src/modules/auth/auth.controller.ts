@@ -1,18 +1,18 @@
-import { Body, Controller, Header, HttpCode, HttpException, HttpStatus, Logger, Post, UsePipes, ValidationPipe } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
+import { Body, Controller, Header, HttpCode, HttpException, HttpStatus, Logger, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import { LoginDto } from './dto/login.dto';
+import { RegisterUserDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
-import { LoginDto } from "./dto/login.dto";
-import { RegisterUserDto } from "./dto/register.dto";
-import { UserService } from "./user.service";
+import { JwtService } from '@nestjs/jwt';
+import { UserService } from 'src/schemas/user/user.service';
 
-@Controller()
-export class UserController {
+@Controller('auth')
+export class AuthController {
     constructor(
         private readonly userService: UserService,
-        private readonly jwtService: JwtService
+        private readonly jwtService: JwtService,
     ) { }
 
-    private readonly logger = new Logger('user.controller');
+    private readonly logger = new Logger('auth.controller');
 
     @UsePipes(new ValidationPipe())
     @Post('register')
@@ -27,13 +27,15 @@ export class UserController {
             throw new HttpException("User already exists", HttpStatus.CONFLICT);
         }
 
-        user.password = await bcrypt.hash(user.password, 8);;
-
+        user.password = await bcrypt.hash(user.password, 8);
         const createduser = await this.userService.createUser(user);
         if (createduser) {
             return {
                 "code": HttpStatus.CREATED,
-                "message": "User created successfully"
+                "message": "User created successfully",
+                "data": {
+                    "profile": createduser,
+                }
             };
         }
 
@@ -47,13 +49,16 @@ export class UserController {
     async login(@Body() credentials: LoginDto) {
         const { username, password } = credentials;
 
-        const user = await this.userService.getUser({ username });
+        const user = await this.userService.getUser({ username }, true);
         if (!user) {
             return new HttpException("User not found", HttpStatus.NOT_FOUND);
         }
 
-        const passwordValid = await bcrypt.compare(user.password!, password);
-        if (!password) {
+        this.logger.log(`${user}`);
+        this.logger.log(`${password}`);
+
+        const passwordValid = await bcrypt.compare(password, user.password!);
+        if (!passwordValid) {
             return new HttpException("Invalid Credentials", HttpStatus.UNAUTHORIZED);
         }
 

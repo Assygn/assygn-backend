@@ -10,12 +10,15 @@ export class UserService {
     private readonly logger = new Logger('user.service');
 
     async hasUser(userId: string): Promise<boolean> {
-        const user = await this.users.findOne({ userId });
-        return user != null && user != undefined;
+        const user = await this.users.find({username: userId});
+        this.logger.log(`${user}`);
+        return (user != null) && (user != undefined) && (user.length != 0);
     }
 
-    async getUser(userId: object) {
-        return this.users.findOne(userId).select('+password');
+    async getUser(userId: object, includePassword: boolean = false) {
+        return includePassword
+            ? this.users.findOne(userId).select('+password')
+            : this.users.findOne(userId);
     }
 
     async createUser(user: object) {
