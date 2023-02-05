@@ -17,7 +17,7 @@ export class AuthController {
     @UsePipes(new ValidationPipe())
     @Post('register')
     @Header('content-type', 'application/json')
-    @HttpCode(201)
+    @HttpCode(HttpStatus.CREATED)
     async register(@Body() user: RegisterUserDto) {
         const { username } = user;
         const existingUser = await this.authService.hasUser(username);
@@ -45,7 +45,7 @@ export class AuthController {
     @UsePipes(new ValidationPipe())
     @Post('login')
     @Header('content-type', 'application/json')
-    @HttpCode(200)
+    @HttpCode(HttpStatus.OK)
     async login(@Body() credentials: LoginDto) {
         const { username, password } = credentials;
 
