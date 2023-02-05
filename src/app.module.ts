@@ -6,6 +6,12 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { config } from './utils/config';
 import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
+
+const API_MODULES = [
+  AuthModule,
+  UsersModule
+];
 
 @Module({
   imports: [
@@ -20,7 +26,7 @@ import { AuthModule } from './modules/auth/auth.module';
         uri: configService.get('mongoUri'),
       }),
     }),
-    AuthModule,
+    ...API_MODULES,
   ],
   controllers: [AppController],
   providers: [AppService],
